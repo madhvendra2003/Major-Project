@@ -2,11 +2,12 @@ package main
 
 import (
 	"encoding/csv"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
 	"math"
-	"math/rand"
+	"net/http"
 	"os"
 	"regexp"
 	"strings"
@@ -253,6 +254,47 @@ func evaluate(predictions, actual []string) {
 	fmt.Println("--------------------------")
 }
 
+var classifier *NaiveBayesClassifier
+
+type PredictionRequest struct {
+	Text string `json:"text"`
+}
+
+type PredictionResponse struct {
+	IsFake int `json:"is_fake"`
+}
+
+func predictHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
+	var request PredictionRequest
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	if request.Text == "" {
+		http.Error(w, "'text' field is required", http.StatusBadRequest)
+		return
+	}
+
+	prediction := classifier.Predict(request.Text)
+
+	response := PredictionResponse{}
+	if prediction == "fake" {
+		response.IsFake = 1
+	} else {
+		response.IsFake = 0
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
+}
+
 func main() {
 	dataFileReal := "True.csv"
 	dataFileFake := "Fake.csv"
@@ -280,30 +322,17 @@ func main() {
 
 	fmt.Printf("Total documents loaded: %d\n", len(docs))
 
-	fmt.Println("\nShuffling and splitting data...")
-	shuffleData(docs, labels)
+	classifier = NewNaiveBayesClassifier(1.0)
 
-	splitIndex := int(float64(len(docs)) * 0.80)
-	trainDocs := docs[:splitIndex]
-	trainLabels := labels[:splitIndex]
-	testDocs := docs[splitIndex:]
-	testLabels := labels[splitIndex:]
-
-	fmt.Printf("Training on %d documents.\n", len(trainDocs))
-	fmt.Printf("Testing on %d documents.\n", len(testDocs))
-
-	classifier := NewNaiveBayesClassifier(1.0)
-
-	fmt.Println("\nTraining classifier (this may take a moment)...")
-	classifier.Train(trainDocs, trainLabels)
+	fmt.Println("\nTraining classifier on the full dataset (this may take a moment)...")
+	classifier.Train(docs, labels)
 	fmt.Println("Training complete.")
 
-	fmt.Println("\nRunning predictions on test set...")
-	predictions := make([]string, len(testDocs))
-	for i, doc := range testDocs {
-		predictions[i] = classifier.Predict(doc)
-	}
+	http.HandleFunc("/predict", predictHandler)
 
-	evaluate(predictions, testLabels)
+	port := ":8080"
+	fmt.Printf("\nServer starting on port %s...\n", port)
+	fmt.Println("Endpoint available at POST http://localhost:8080/predict")
+	log.Fatal(http.ListenAndServe(port, nil))
 }
 
