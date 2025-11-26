@@ -1,47 +1,4 @@
-"""
-================================================================================
-Project Documentation: A Hybrid Approach to Fake News Detection
-================================================================================
 
-AUTHOR: [Your Name Here]
-DATE: October 30, 2025
-VERSION: 1.7 (Removed GloVe, Cleaned Pipeline)
-
---------------------------------------------------------------------------------
-ABSTRACT
---------------------------------------------------------------------------------
-This project implements and compares a comprehensive suite of "content-only" 
-models for automated fake news detection. It serves as a complete experimental
-pipeline for a research paper, comparing models of increasing complexity.
-
-The models included are:
-1.  MODULE 1A: From-Scratch Naive Bayes
-    A frequency-based baseline, made numerically stable with log-probabilities.
-
-2.  MODULE 1B: Custom Word2Vec Analyzer
-    A novel model that first trains its own 'Word2Vec' embeddings from the
-    dataset, then uses those custom embeddings for classification.
-
-3.  MODULE 3 (SKLEARN): Optimized ML Benchmarks
-    Industry-standard TF-IDF vectorization paired with Multinomial Naive Bayes
-    and Logistic Regression (our primary benchmark).
-
-4.  MODULE 3 (KERAS): Deep Learning Model
-    A research-grade Bidirectional LSTM (Long Short-Term Memory) network
-    to capture sequential context and nuanced meaning.
-
-The main() function loads a two-file dataset (real/fake), trains all four
-model types, and provides a clear, comparative performance report.
-"""
-
-# --- DEPENDENCIES ---
-# pip install pandas scikit-learn nltk tensorflow
-#
-# After installation, run python and type:
-# import nltk
-# nltk.download('wordnet')
-# nltk.download('punkt')
-# nltk.download('stopwords')
 
 import re
 import math
@@ -162,10 +119,7 @@ class NaiveBayesClassifier:
 
 # --- MODULE 1B: Custom Word2Vec Vector Analyst ---
 class CustomWord2VecAnalyzer:
-    """
-    A model that first trains its own Word2Vec embeddings from the dataset,
-    then uses them for classification via prototype averaging.
-    """
+  
     def __init__(self, embedding_dim=50, window_size=5, min_count=2, epochs=3):
         self.embedding_dim = embedding_dim
         self.window_size = window_size

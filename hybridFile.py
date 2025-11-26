@@ -4,10 +4,7 @@ import math
 
 # --- MODULE 1: The Content Analyst ---
 class NaiveBayesClassifier:
-    """
-    A Naive Bayes Classifier for text classification.
-    This component analyzes the content of the news article.
-    """
+   
     def __init__(self, smoothing=1):
         self.smoothing = smoothing
         self.vocab = set()
@@ -65,9 +62,7 @@ class NaiveBayesClassifier:
 
 # --- MODULE 2: The Source Analyst ---
 class TrustNetwork:
-    """
-    Manages the trust scores of news sources based on their network connections.
-    """
+   
     def __init__(self, citation_graph, direct_trust_scores):
         self.graph = citation_graph
         self.nodes = set(self.graph.keys())
@@ -79,9 +74,7 @@ class TrustNetwork:
         self.final_trust_scores = {}
 
     def calculate_indirect_trust(self, iterations=10, damping_factor=0.85):
-        """
-        Calculates trust scores iteratively, propagating them through the network.
-        """
+       
         cited_by_graph = {node: [] for node in self.nodes}
         for citer, cited_list in self.graph.items():
             for cited in cited_list:
