@@ -23,7 +23,8 @@ def load_data(file_path):
         print(f"Error processing data file: {e}. Make sure the CSV format is correct.")
     return events
 
-def main():
+def process_and_update_blockchain():
+    """Processes news data, updates trust scores, and records them on the blockchain."""
     # 1. Initialize Blockchain and Deploy Contract
     try:
         client = BlockchainClient()  # Connects to http://127.0.0.1:7545
@@ -101,6 +102,9 @@ def main():
     print(f"Plot saved as {plot_filename}")
     
     plt.show()
+
+def main():
+    process_and_update_blockchain()
 
 if __name__ == "__main__":
     main()

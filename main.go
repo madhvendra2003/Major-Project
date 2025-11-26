@@ -12,7 +12,6 @@ import (
 	"regexp"
 	"strings"
 	"sync"
-	"time"
 )
 
 var stopWords = map[string]bool{
@@ -197,62 +196,62 @@ func loadDataFromCSV(filepath string, label string, textColumnName string) ([]st
 	return documents, labels, nil
 }
 
-func shuffleData(docs []string, labels []string) {
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-	r.Shuffle(len(docs), func(i, j int) {
-		docs[i], docs[j] = docs[j], docs[i]
-		labels[i], labels[j] = labels[j], labels[i]
-	})
-}
+// func shuffleData(docs []string, labels []string) {
+// 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+// 	r.Shuffle(len(docs), func(i, j int) {
+// 		docs[i], docs[j] = docs[j], docs[i]
+// 		labels[i], labels[j] = labels[j], labels[i]
+// 	})
+// }
 
-func evaluate(predictions, actual []string) {
-	var truePositive, falsePositive, falseNegative, trueNegative int
-	posLabel := "fake"
-	negLabel := "real"
+// func evaluate(predictions, actual []string) {
+// 	var truePositive, falsePositive, falseNegative, trueNegative int
+// 	posLabel := "fake"
+// 	negLabel := "real"
 
-	for i := 0; i < len(predictions); i++ {
-		pred := predictions[i]
-		act := actual[i]
+// 	for i := 0; i < len(predictions); i++ {
+// 		pred := predictions[i]
+// 		act := actual[i]
 
-		if pred == posLabel && act == posLabel {
-			truePositive++
-		} else if pred == posLabel && act == negLabel {
-			falsePositive++
-		} else if pred == negLabel && act == posLabel {
-			falseNegative++
-		} else if pred == negLabel && act == negLabel {
-			trueNegative++
-		}
-	}
+// 		if pred == posLabel && act == posLabel {
+// 			truePositive++
+// 		} else if pred == posLabel && act == negLabel {
+// 			falsePositive++
+// 		} else if pred == negLabel && act == posLabel {
+// 			falseNegative++
+// 		} else if pred == negLabel && act == negLabel {
+// 			trueNegative++
+// 		}
+// 	}
 
-	accuracy := float64(truePositive+trueNegative) / float64(len(predictions))
+// 	accuracy := float64(truePositive+trueNegative) / float64(len(predictions))
 	
-	var precision float64
-	if truePositive+falsePositive > 0 {
-		precision = float64(truePositive) / float64(truePositive+falsePositive)
-	}
+// 	var precision float64
+// 	if truePositive+falsePositive > 0 {
+// 		precision = float64(truePositive) / float64(truePositive+falsePositive)
+// 	}
 
-	var recall float64
-	if truePositive+falseNegative > 0 {
-		recall = float64(truePositive) / float64(truePositive+falseNegative)
-	}
+// 	var recall float64
+// 	if truePositive+falseNegative > 0 {
+// 		recall = float64(truePositive) / float64(truePositive+falseNegative)
+// 	}
 
-	var f1 float64
-	if precision+recall > 0 {
-		f1 = 2 * (precision * recall) / (precision + recall)
-	}
+// 	var f1 float64
+// 	if precision+recall > 0 {
+// 		f1 = 2 * (precision * recall) / (precision + recall)
+// 	}
 
-	fmt.Println("\n--- Evaluation Results ---")
-	fmt.Printf("  Accuracy:  %.4f\n", accuracy)
-	fmt.Printf("  Precision: %.4f (for 'fake' class)\n", precision)
-	fmt.Printf("  Recall:    %.4f (for 'fake' class)\n", recall)
-	fmt.Printf("  F1-Score:  %.4f (for 'fake' class)\n", f1)
-	fmt.Println("  Confusion Matrix:")
-	fmt.Printf("     \t  (Pred Real) (Pred Fake)\n")
-	fmt.Printf("   (True Real) %5d       %5d\n", trueNegative, falsePositive)
-	fmt.Printf("   (True Fake) %5d       %5d\n", falseNegative, truePositive)
-	fmt.Println("--------------------------")
-}
+// 	fmt.Println("\n--- Evaluation Results ---")
+// 	fmt.Printf("  Accuracy:  %.4f\n", accuracy)
+// 	fmt.Printf("  Precision: %.4f (for 'fake' class)\n", precision)
+// 	fmt.Printf("  Recall:    %.4f (for 'fake' class)\n", recall)
+// 	fmt.Printf("  F1-Score:  %.4f (for 'fake' class)\n", f1)
+// 	fmt.Println("  Confusion Matrix:")
+// 	fmt.Printf("     \t  (Pred Real) (Pred Fake)\n")
+// 	fmt.Printf("   (True Real) %5d       %5d\n", trueNegative, falsePositive)
+// 	fmt.Printf("   (True Fake) %5d       %5d\n", falseNegative, truePositive)
+// 	fmt.Println("--------------------------")
+// }
 
 var classifier *NaiveBayesClassifier
 
