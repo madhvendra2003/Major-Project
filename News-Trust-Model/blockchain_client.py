@@ -1,7 +1,7 @@
 from web3 import Web3
 import json
-import solcx
-solcx.install_solc('0.8.0')
+from solcx import compile_source, install_solc
+install_solc('0.8.0')
 
 class BlockchainClient:
     def __init__(self, provider_url="http://127.0.0.1:7545"):
@@ -14,7 +14,7 @@ class BlockchainClient:
     def deploy_contract(self, contract_file="contracts/SourceReputation.sol"):
         with open(contract_file, 'r') as f:
             contract_source = f.read()
-        compiled = solcx.compile_source(
+        compiled = compile_source(
             contract_source,
             output_values=['abi', 'bin'],
             solc_version='0.8.0'

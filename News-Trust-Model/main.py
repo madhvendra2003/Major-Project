@@ -11,11 +11,11 @@ def load_data(file_path):
     """Loads news submission events from the CSV file."""
     events = []
     try:
-        with open(file_path, 'r', newline='') as f:
+        with open(file_path, 'r', newline='', encoding='utf-8') as f:
             reader = csv.DictReader(f)
             for row in reader:
                 row['prediction'] = int(row['prediction'])
-                row['timestamp'] = datetime.fromisoformat(row['timestamp'])
+                row['timestamp'] = datetime.fromisoformat(row['timestamp']) if 'timestamp' in row else datetime.now()
                 events.append(row)
     except FileNotFoundError:
         print(f"Data file not found at {file_path}. Please create it or run submit_news.py first.")

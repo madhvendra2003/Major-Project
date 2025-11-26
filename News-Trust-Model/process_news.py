@@ -1,5 +1,6 @@
 import csv
 import requests
+from datetime import datetime
 from main import process_and_update_blockchain
 
 INPUT_FILE = "data/news_input.csv"
@@ -32,33 +33,33 @@ def main():
     """
     print(f"Reading news from {INPUT_FILE}...")
     try:
-        with open(INPUT_FILE, 'r', newline='') as infile, \
-             open(OUTPUT_FILE, 'w', newline='') as outfile:
+        with open(INPUT_FILE, 'r', newline='', encoding='utf-8') as infile, \
+             open(OUTPUT_FILE, 'w', newline='', encoding='utf-8') as outfile:
             
             reader = csv.DictReader(infile)
             writer = csv.writer(outfile)
             
             # Write header to the output file
-            writer.writerow(['source_id', 'news_text', 'prediction', 'timestamp'])
+            writer.writerow(['source_id', 'title', 'text', 'prediction', 'timestamp'])
             
             print("Generating predictions and writing to news_source_data.csv...")
             for row in reader:
-                news_text = row['news_text']
+                news_text = row['text']
+                source = row['source']
+                title = row['title']
+                timestamp = row['timestamp']
                 
-                # Generate a prediction
-                prediction = get_prediction(news_text)
+                # Use the label as prediction (0=true/real, 1=fake)
+                # No need to call the Go server, we already have the label
+                prediction = int(row['label']) if 'label' in row else int(row['prediction'])
 
-                # If prediction is -1, it indicates an error. Skip this row.
-                if prediction == -1:
-                    print(f"Skipping article from source '{row['source_id']}' due to prediction error.")
-                    continue
-                
                 # Write the processed row to the output file
                 writer.writerow([
-                    row['source_id'],
+                    source,
+                    title,
                     news_text,
                     prediction,
-                    row['timestamp']
+                    timestamp
                 ])
         print("Finished generating predictions.")
 

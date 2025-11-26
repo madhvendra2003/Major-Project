@@ -31,15 +31,17 @@ class SourceLogic:
         self.last_seen[source_id] = timestamp
         current_trust = self.trust_db[source_id]
 
-        # Prediction: 0 for 'real', 1 for 'fake'
-        if prediction == 0:  # Real news
+        # Prediction: 0 for 'real' (correct/true), 1 for 'fake' (incorrect/false)
+        if prediction == 0:  # Real news - CORRECT
+            # Reward for correct news - increase trust significantly
             increment = self.reward_factor * (100.0 - current_trust)
             current_trust += increment
-            print(f"[SourceLogic] Real news: Increased trust of '{source_id}' by {increment:.2f}.")
-        else:  # Fake news
+            print(f"[SourceLogic] ✓ CORRECT: Real news from '{source_id}' - Increased trust by {increment:.2f}.")
+        else:  # Fake news - INCORRECT
+            # Penalize for incorrect news - decrease trust significantly
             decrement = self.penalty_factor * current_trust
             current_trust -= decrement
-            print(f"[SourceLogic] Fake news: Penalized trust of '{source_id}' by {decrement:.2f}.")
+            print(f"[SourceLogic] ✗ INCORRECT: Fake news from '{source_id}' - Decreased trust by {decrement:.2f}.")
 
         current_trust = max(0.0, min(100.0, current_trust))
         self.trust_db[source_id] = current_trust
