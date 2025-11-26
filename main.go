@@ -7,11 +7,13 @@ import (
 	"io"
 	"log"
 	"math"
+	"math/rand"
 	"net/http"
 	"os"
 	"regexp"
 	"strings"
 	"sync"
+	"time"
 )
 
 var stopWords = map[string]bool{
@@ -196,62 +198,62 @@ func loadDataFromCSV(filepath string, label string, textColumnName string) ([]st
 	return documents, labels, nil
 }
 
-// func shuffleData(docs []string, labels []string) {
-// 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-// 	r.Shuffle(len(docs), func(i, j int) {
-// 		docs[i], docs[j] = docs[j], docs[i]
-// 		labels[i], labels[j] = labels[j], labels[i]
-// 	})
-// }
+func shuffleData(docs []string, labels []string) {
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	r.Shuffle(len(docs), func(i, j int) {
+		docs[i], docs[j] = docs[j], docs[i]
+		labels[i], labels[j] = labels[j], labels[i]
+	})
+}
 
-// func evaluate(predictions, actual []string) {
-// 	var truePositive, falsePositive, falseNegative, trueNegative int
-// 	posLabel := "fake"
-// 	negLabel := "real"
+func evaluate(predictions, actual []string) {
+	var truePositive, falsePositive, falseNegative, trueNegative int
+	posLabel := "fake"
+	negLabel := "real"
 
-// 	for i := 0; i < len(predictions); i++ {
-// 		pred := predictions[i]
-// 		act := actual[i]
+	for i := 0; i < len(predictions); i++ {
+		pred := predictions[i]
+		act := actual[i]
 
-// 		if pred == posLabel && act == posLabel {
-// 			truePositive++
-// 		} else if pred == posLabel && act == negLabel {
-// 			falsePositive++
-// 		} else if pred == negLabel && act == posLabel {
-// 			falseNegative++
-// 		} else if pred == negLabel && act == negLabel {
-// 			trueNegative++
-// 		}
-// 	}
+		if pred == posLabel && act == posLabel {
+			truePositive++
+		} else if pred == posLabel && act == negLabel {
+			falsePositive++
+		} else if pred == negLabel && act == posLabel {
+			falseNegative++
+		} else if pred == negLabel && act == negLabel {
+			trueNegative++
+		}
+	}
 
-// 	accuracy := float64(truePositive+trueNegative) / float64(len(predictions))
-	
-// 	var precision float64
-// 	if truePositive+falsePositive > 0 {
-// 		precision = float64(truePositive) / float64(truePositive+falsePositive)
-// 	}
+	accuracy := float64(truePositive+trueNegative) / float64(len(predictions))
 
-// 	var recall float64
-// 	if truePositive+falseNegative > 0 {
-// 		recall = float64(truePositive) / float64(truePositive+falseNegative)
-// 	}
+	var precision float64
+	if truePositive+falsePositive > 0 {
+		precision = float64(truePositive) / float64(truePositive+falsePositive)
+	}
 
-// 	var f1 float64
-// 	if precision+recall > 0 {
-// 		f1 = 2 * (precision * recall) / (precision + recall)
-// 	}
+	var recall float64
+	if truePositive+falseNegative > 0 {
+		recall = float64(truePositive) / float64(truePositive+falseNegative)
+	}
 
-// 	fmt.Println("\n--- Evaluation Results ---")
-// 	fmt.Printf("  Accuracy:  %.4f\n", accuracy)
-// 	fmt.Printf("  Precision: %.4f (for 'fake' class)\n", precision)
-// 	fmt.Printf("  Recall:    %.4f (for 'fake' class)\n", recall)
-// 	fmt.Printf("  F1-Score:  %.4f (for 'fake' class)\n", f1)
-// 	fmt.Println("  Confusion Matrix:")
-// 	fmt.Printf("     \t  (Pred Real) (Pred Fake)\n")
-// 	fmt.Printf("   (True Real) %5d       %5d\n", trueNegative, falsePositive)
-// 	fmt.Printf("   (True Fake) %5d       %5d\n", falseNegative, truePositive)
-// 	fmt.Println("--------------------------")
-// }
+	var f1 float64
+	if precision+recall > 0 {
+		f1 = 2 * (precision * recall) / (precision + recall)
+	}
+
+	fmt.Println("\n--- Evaluation Results ---")
+	fmt.Printf("  Accuracy:  %.4f\n", accuracy)
+	fmt.Printf("  Precision: %.4f (for 'fake' class)\n", precision)
+	fmt.Printf("  Recall:    %.4f (for 'fake' class)\n", recall)
+	fmt.Printf("  F1-Score:  %.4f (for 'fake' class)\n", f1)
+	fmt.Println("  Confusion Matrix:")
+	fmt.Printf("     \t  (Pred Real) (Pred Fake)\n")
+	fmt.Printf("   (True Real) %5d       %5d\n", trueNegative, falsePositive)
+	fmt.Printf("   (True Fake) %5d       %5d\n", falseNegative, truePositive)
+	fmt.Println("--------------------------")
+}
 
 var classifier *NaiveBayesClassifier
 
@@ -321,11 +323,34 @@ func main() {
 
 	fmt.Printf("Total documents loaded: %d\n", len(docs))
 
+	// Shuffle the data
+	fmt.Println("\nShuffling data...")
+	shuffleData(docs, labels)
+	fmt.Println("Data shuffled successfully.")
+
+	// Split into train and test sets (80/20 split)
+	splitIndex := int(float64(len(docs)) * 0.8)
+	trainDocs := docs[:splitIndex]
+	trainLabels := labels[:splitIndex]
+	testDocs := docs[splitIndex:]
+	testLabels := labels[splitIndex:]
+
+	fmt.Printf("\nTrain set: %d documents\n", len(trainDocs))
+	fmt.Printf("Test set: %d documents\n", len(testDocs))
+
 	classifier = NewNaiveBayesClassifier(1.0)
 
-	fmt.Println("\nTraining classifier on the full dataset (this may take a moment)...")
-	classifier.Train(docs, labels)
+	fmt.Println("\nTraining classifier on training dataset (this may take a moment)...")
+	classifier.Train(trainDocs, trainLabels)
 	fmt.Println("Training complete.")
+
+	// Evaluate on test set
+	fmt.Println("\nEvaluating classifier on test set...")
+	predictions := make([]string, len(testDocs))
+	for i, doc := range testDocs {
+		predictions[i] = classifier.Predict(doc)
+	}
+	evaluate(predictions, testLabels)
 
 	http.HandleFunc("/predict", predictHandler)
 
@@ -334,4 +359,3 @@ func main() {
 	fmt.Println("Endpoint available at POST http://localhost:8080/predict")
 	log.Fatal(http.ListenAndServe(port, nil))
 }
-
